@@ -1,9 +1,19 @@
 import Stripe from "stripe";
 import { db } from "./db";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// 🔒 Stripe "safe": parte solo se la variabile esiste
+export const stripe =
+  process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY)
+    : null;
 
 export async function updateOrganizationTicketingStatus(stripeId: string, status: string) {
+  // Se Stripe non è attivo, evita l'errore in build e non fare nulla
+  if (!stripe) {
+    console.warn("⚠️ Stripe disabilitato: manca STRIPE_SECRET_KEY");
+    return "stripe_disabled";
+  }
+
   // 🔍 Trova l'organizzazione collegata all'account Stripe
   const organization = await db.organization.findFirst({
     where: { stripeAccountId: stripeId },
@@ -14,10 +24,8 @@ export async function updateOrganizationTicketingStatus(stripeId: string, status
     throw new Error("Organizzazione non trovata.");
   }
 
-  // ✅ Prendi l'ID dell'organizzazione corretta
   const organizationId = organization.id;
 
-  // 🔹 Se non c'è uno Stripe ID, assegna stato "no_stripe"
   if (!organization.stripeAccountId) {
     await db.organization.update({
       where: { id: organizationId },
@@ -26,7 +34,6 @@ export async function updateOrganizationTicketingStatus(stripeId: string, status
     return "no_stripe";
   }
 
-  // ✅ Aggiorna lo stato nel database
   await db.organization.update({
     where: { id: organizationId },
     data: { ticketingStatus: status },
