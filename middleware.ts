@@ -1,20 +1,17 @@
-import { NextResponse } from 'next/server'
-import authConfig from "@/auth.config"
-import NextAuth from "next-auth"
-import { DEFAULT_LOGIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes } from "@/routes"
+import { NextResponse } from "next/server";
+import { DEFAULT_LOGIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes } from "@/routes";
+import { getToken } from "next-auth/jwt";
 
-const { auth } = NextAuth(authConfig)
- 
-export default auth(async (req) => {
+export async function middleware(req: any) {
   const { nextUrl } = req;
 
-  const isLoggedIn = !!req.auth;
+  // 🔑 Prendiamo il token JWT invece di importare NextAuth
+  const token = await getToken({ req });
+  const isLoggedIn = !!token;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-
-  
 
   if (isApiAuthRoute) {
     return NextResponse.next();
@@ -28,24 +25,20 @@ export default auth(async (req) => {
   }
 
   if (!isLoggedIn && !isPublicRoute) {
-
     let callbackUrl = nextUrl.pathname;
-    if(nextUrl.search) {
-      callbackUrl += nextUrl.search;
-    }
-    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
-    const loginUrl = `/auth/login?callbackUrl=${encodedCallbackUrl}`
+    if (nextUrl.search) callbackUrl += nextUrl.search;
 
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    const loginUrl = `/auth/login?callbackUrl=${encodedCallbackUrl}`;
     return NextResponse.redirect(new URL(loginUrl, nextUrl));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpg|jpeg|png|gif|webp|svg|ico|woff2?|ttf|eot)).*)",
+    "/(api|trpc)(.*)",
   ],
-  runtime: "nodejs"
-}
+};
