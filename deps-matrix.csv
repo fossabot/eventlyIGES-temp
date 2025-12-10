@@ -1,0 +1,12 @@
+Bucket,app,actions,data,components,hooks,lib,prisma,public,schemas,middleware,routes-auth
+app,5,2,23,54,2,29,0,0,0,0,0
+actions,0,0,11,0,0,21,0,0,7,0,1
+data,0,0,0,0,0,8,0,0,0,0,0
+components,0,11,1,111,3,13,0,0,8,0,0
+hooks,0,1,0,0,0,0,0,0,0,0,0
+lib,0,0,4,0,0,2,0,0,0,0,0
+prisma,0,0,0,0,0,0,0,0,0,0,0
+public,0,0,0,0,0,0,0,0,0,0,0
+schemas,0,0,0,0,0,0,0,0,0,0,0
+middleware,0,0,0,0,0,0,0,0,0,0,0
+routes-auth,0,0,1,0,0,0,0,0,1,0,0
