@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe"; 
 
-
-export { db };
-
-
 export async function POST(req: Request) {
   const { organizationId } = await req.json();
 
