@@ -1,35 +1,46 @@
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
+import { stripe } from "@/lib/stripe"; 
+
+
+export { db };
+
 
 export async function POST(req: Request) {
-  try {
-    const { organizationId, email } = await req.json();
+  const { organizationId } = await req.json();
 
-    if (!organizationId || !email) {
-      return NextResponse.json({ error: "Manca organizationId o email" }, { status: 400 });
-    }
+  // Trova l'organizzazione
+  const organization = await db.organization.findUnique({
+    where: { id: organizationId },
+  });
 
-    // Creiamo l'account Stripe Express per l'organizzatore
-    const account = await stripe.accounts.create({
-      type: "express",
-      country: "IT", // Cambia se necessario
-      email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-    });
-
-    // Salviamo l'accountId in database
-    await db.organization.update({
-      where: { id: organizationId },
-      data: { stripeAccountId: account.id },
-    });
-
-    return NextResponse.json({ success: true, accountId: account.id });
-  } catch (error) {
-    console.error("Errore nella creazione dell'account Stripe:", error);
-    return NextResponse.json({ error: "Errore nella creazione dell'account Stripe." }, { status: 500 });
+  if (!organization || !organization.stripeAccountId) {
+    return NextResponse.json({ error: "Organizzazione o Stripe ID non trovato" }, { status: 404 });
   }
+
+  // 🔒 Controllo stripe
+  if (!stripe) {
+    console.warn("⚠️ Stripe disabilitato: manca STRIPE_SECRET_KEY");
+    // Mock dati per build/deploy statico o ambiente senza chiave
+    return NextResponse.json({
+      payouts_enabled: false,
+      charges_enabled: false,
+      details_submitted: false,
+      stripeAccountId: "mock_id",
+      requirements: [],
+      dashboard_url: "#",
+    });
+  }
+
+  // Chiamata reale a Stripe
+  const account = await stripe.accounts.retrieve(organization.stripeAccountId);
+
+  return NextResponse.json({
+    payouts_enabled: account.payouts_enabled,
+    charges_enabled: account.charges_enabled,
+    details_submitted: account.details_submitted,
+    stripeAccountId: account.id,
+    requirements: account.requirements ?? [],
+    dashboard_url: `https://dashboard.stripe.com/${account.id}`,
+  });
 }
