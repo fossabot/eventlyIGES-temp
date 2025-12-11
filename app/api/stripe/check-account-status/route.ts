@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Organizzazione non trovata o non collegata a Stripe." }, { status: 404 });
     }
 
-    const account = await stripe.accounts.retrieve(organization.stripeAccountId);
+    const account = await stripe!.accounts.retrieve(organization.stripeAccountId);
 
     return NextResponse.json({
       payouts_enabled: account.payouts_enabled,
