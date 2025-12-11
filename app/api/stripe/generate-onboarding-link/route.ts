@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     // Creiamo un link di onboarding per completare la verifica
-    const accountLink = await stripe.accountLinks.create({
+    const accountLink = await stripe!.accountLinks.create({
       account: organization.stripeAccountId,
       refresh_url: process.env.NEXT_PUBLIC_SITE_URL,  // URL se qualcosa va storto
       return_url: process.env.NEXT_PUBLIC_SITE_URL, // Dove tornare dopo la verifica
