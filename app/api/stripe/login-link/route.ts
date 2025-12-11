@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     // Creiamo un link per accedere alla dashboard Stripe
-    const loginLink = await stripe.accounts.createLoginLink(organization.stripeAccountId);
+    const loginLink = await stripe!.accounts.createLoginLink(organization.stripeAccountId);
 
     return NextResponse.json({ url: loginLink.url });
   } catch (error) {
