@@ -13,8 +13,11 @@ export type UserNotificationItem = {
  * Restituisce le notifiche indirizzate all'utente (più recenti prima).
  * Mostra solo i campi: id, title, message, link, createdAt.
  */
-export async function getUserNotifications(userId: string): Promise<UserNotificationItem[]> {
+export async function getUserNotifications(userId: string, page: number = 1, limit: number = 20
+): Promise<UserNotificationItem[]> {
   if (!userId) return [];
+
+  const skip = (page - 1) * limit;
 
   const rows = await db.notification.findMany({
     where: {
@@ -30,7 +33,10 @@ export async function getUserNotifications(userId: string): Promise<UserNotifica
       createdAt: true,
     },
     orderBy: { createdAt: "desc" },
+    skip,
+    take: limit,
   });
 
   return rows;
 }
+

@@ -5,7 +5,6 @@ import { Ticket } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { sendUserNotification } from "./notification";
 
-
 export async function createTicketActionandUpdateSold(
   eventId: string,
   userId: string,
@@ -18,19 +17,11 @@ export async function createTicketActionandUpdateSold(
     // Genera un codice univoco per il biglietto (QR Code)
     const ticketCode = uuidv4();
 
-    const ticketType = await db.ticketType.findUnique({
-      where: { id: ticketTypeId },
-    });
-
-    if (!ticketType) {
-      throw new Error("Ticket type not found");
-    }
-
-    // Transazione: incrementa sold + crea ticket
     const result = await db.$transaction(async (tx) => {
       const updatedTicketType = await tx.ticketType.update({
         where: { id: ticketTypeId },
         data: { sold: { increment: 1 } },
+        select: { id: true, sold: true },
       });
 
       const ticket = await tx.ticket.create({
@@ -49,23 +40,21 @@ export async function createTicketActionandUpdateSold(
       return { ticket, updatedTicketType };
     });
 
-    console.log("✅ Biglietto creato con successo:", result.ticket);
-    console.log("✅ Contatore biglietti venduti aggiornato:", result.updatedTicketType.sold);
-
-    // Recupero evento (per titolo e org mittente) e invio notifica
+    // Recupero dati evento necessari per notifica
     const evt = await db.event.findUnique({
       where: { id: eventId },
       select: { id: true, title: true, organizationId: true },
     });
 
+    // Invio notifica in modo asincrono senza bloccare il flusso
     if (evt) {
-      await sendUserNotification({
+      sendUserNotification({
         userId,
         title: "Acquisto confermato",
         message: `Hai acquistato un biglietto per: ${evt.title}`,
-        link: `/events/${evt.id}`,             // opzionalmente link al ticket specifico
+        link: `/events/${evt.id}`,
         senderOrganizationId: evt.organizationId ?? undefined,
-      });
+      }).catch((err) => console.error("Errore invio notifica:", err));
     }
 
     return { success: true, ticket: result.ticket };
