@@ -14,6 +14,7 @@ Dcomunetazione Progetto:
 
 
 ![screen-evently](https://github.com/user-attachments/assets/a683b076-1a47-4d0e-80b6-40d93c37a947)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNicolettaMauro%2FeventlyIGES-temp.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FNicolettaMauro%2FeventlyIGES-temp?ref=badge_shield)
 
 ## Tecnologie utilizzate
 
@@ -106,3 +107,7 @@ Avvio del sever di sviluppo
 npm run dev
 
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNicolettaMauro%2FeventlyIGES-temp.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FNicolettaMauro%2FeventlyIGES-temp?ref=badge_large)
