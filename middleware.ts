@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { DEFAULT_LOGIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes } from "@/routes";
+import {
+  DEFAULT_LOGIN_REDIRECT,
+  apiAuthPrefix,
+  authRoutes,
+  publicRoutes,
+} from "@/routes";
 
 export async function middleware(req: any) {
   const { nextUrl } = req;
 
-  const token = await getToken({ req });
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET,
+  });
+
   const isLoggedIn = !!token;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
@@ -16,7 +25,9 @@ export async function middleware(req: any) {
 
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, req.url));
+      return NextResponse.redirect(
+        new URL(DEFAULT_LOGIN_REDIRECT, req.url)
+      );
     }
     return NextResponse.next();
   }
@@ -33,11 +44,3 @@ export async function middleware(req: any) {
 
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpg|jpeg|png|gif|webp|svg|ico|woff2?|ttf|eot)).*)",
-    "/(api|trpc)(.*)",
-  ],
-};
-
